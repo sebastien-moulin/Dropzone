@@ -1,0 +1,19 @@
+SELECT /*+ parallel(24) */ DISTINCT FIELD_NAME, EXTERNAL_VALUE, INTERNAL_VALUE, TABLE_NAME, DCREATED, CREATED_BY, DUPDATED, UPDATED_BY, INT_PROV_ID 
+
+FROM (SELECT      i.*,
+
+                  SUM(1) OVER (PARTITION BY FIELD_NAME, EXTERNAL_VALUE, TABLE_NAME, INT_PROV_ID ORDER BY FIELD_NAME, EXTERNAL_VALUE, TABLE_NAME, INT_PROV_ID) ext,
+
+                  SUM(1) OVER (PARTITION BY FIELD_NAME, INTERNAL_VALUE, TABLE_NAME, INT_PROV_ID ORDER BY FIELD_NAME, INTERNAL_VALUE, TABLE_NAME, INT_PROV_ID) ine
+
+                                                FROM stg_ta_rep_equi i
+
+                                                WHERE field_name = 'NREGISTER'
+
+                                                AND table_name = 'REGISTER'
+
+                                                )
+
+                              WHERE ext > 1
+
+                              OR ine > 1
